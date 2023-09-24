@@ -6,10 +6,8 @@
 from __future__ import print_function, division, unicode_literals
 from cgitb import text
 from http.client import MOVED_PERMANENTLY
-import example_helper
+# import example_helper
 import json
-import csv
-import argparse
 
 import numpy as np
 import emoji
@@ -106,11 +104,3 @@ def predict_emoji_from_text(text, single_label=True, max_length=30):
         return emoji_ids[0]
     
     return emoji_ids[:25]
-
-# if __name__ == "__main__":
-#     argparser = argparse.ArgumentParser()
-#     argparser.add_argument('--text', type=str, required=True, help="Input text to emojize")
-#     argparser.add_argument('--maxlen', type=int, default=30, help="Max length of input text")
-#     args = argparser.parse_args()
-
-#     predict_emoji_from_text(args.text)
