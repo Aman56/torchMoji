@@ -1,11 +1,11 @@
 
+import random
+from tkinter.font import names
 import pandas as pd
 import torch.optim as optim
 import torch.nn.functional as F
 import torch.nn as nn
 from torch.utils.data import DataLoader, random_split, Dataset
-import torchvision
-from sklearn.metrics import f1_score
 from PIL import Image
 import numpy as np
 import torchvision.transforms as transforms
@@ -16,11 +16,12 @@ import matplotlib.pyplot as plt
 warnings.filterwarnings("ignore")
 from skimage import io, transform as sktransform
 import os
-from pretrained import alex,densenet, inception
+from pretrained import alex,densenet, inception, resnet
 # from label_data import IMAGE_PATH
 from sklearn.model_selection import GridSearchCV
 from random_model import return_valid_frame
 from skorch import NeuralNetClassifier
+from skorch.helper import SliceDataset
 
 
 class SpectrogramDataset(Dataset):
@@ -58,7 +59,7 @@ class SpectrogramDataset(Dataset):
         sample = {'image': image, 'emo_lab': emo_lab}
 
         if self.transform:
-            sample['image'] = self.transform((sample['image']))
+            sample['image'] = (self.transform((sample['image'])),img_name)
             # sample['image'] = sample['image'].unsqueeze(0)
 
         return sample
@@ -142,7 +143,7 @@ def random_accuracy_check():
 
     # print(f"Random set accuracy calculated using formula = {accurate}")
 
-def model_training(net, device, train_dataloader, epochs):
+def model_training(net, device, train_dataloader, val_dataloader, config, walk):
     
     # Declare/Initialize model
     # net = Net(labels=LABELS)
@@ -152,11 +153,11 @@ def model_training(net, device, train_dataloader, epochs):
 
     criterion = nn.BCELoss()
 
-    optimizer = optim.Adam(net.parameters(), lr=0.001)
+    optimizer = optim.Adam(net.parameters(), lr=config['lr'])
     traintime = time.time()
 
 
-    for ep in range(epochs):  # loop over the dataset multiple times
+    for ep in range(config['max_epochs']):  # loop over the dataset multiple times
         timeing = time.time()
         running_loss = 0.0
         for i, data in enumerate(train_dataloader):
@@ -164,6 +165,7 @@ def model_training(net, device, train_dataloader, epochs):
 
             # get the inputs; data is a list of [inputs, labels]
             inputs, label = data['image'], data['emo_lab']
+            inputs, _ = inputs
 
             # print(label.shape)
             inputs = inputs.to(device)
@@ -188,92 +190,81 @@ def model_training(net, device, train_dataloader, epochs):
         print(f'[{ep + 1}, {i + 1:5d}] loss: {running_loss/len(train_dataloader):.3f}')
 
         if ep % 5 == 0:        
-            # Save model here for re-use and testing
-            torch.save(net.state_dict(), f"/Users/amanshukla/miniforge3/torchMoji/model/train_dense{ep}.ckpt")
+        #     # Save model here for re-use and testing
+            torch.save(net.state_dict(), f"/Users/amanshukla/miniforge3/torchMoji/model/trained_resnet18_{ep}.ckpt")
 
-    print('Finished Training')
+    print(f'Finished Training for {config}')
     print(f"Time for training = {time.time()-traintime}")
 
     # Save model here for re-use and testing
-    torch.save(net.state_dict(), f"/Users/amanshukla/miniforge3/torchMoji/model/t25.ckpt")
+    torch.save(net.state_dict(), f"/Users/amanshukla/miniforge3/torchMoji/model/final_resnet18_{config['max_epochs']}.ckpt")
+# f"/home/as14034/torchMoji/t257654.ckpt
 
+    # net.eval()
+    
     # correct = 0
     # total = 0
     # # since we're not training, we don't need to calculate the gradients for our outputs
     # with torch.no_grad():
-    #     for data in test_dataloader:
+    #     for data in val_dataloader:
+    #         # print("Batching")
     #         images, labels = data['image'], data['emo_lab']
-    #         # calculate outputs by running images through the network
-    #         # images = images.permute(0, 3, 1, 2)
-    #         images = images.to(device)
-    #         labels = labels.to(device)
+    #         images, _ = images
     #         labels = labels.squeeze(dim=1)
-    #         outputs = net(images.float())
-    #         # the class with the highest energy is what we choose as prediction
-    #         # _, predicted = torch.max(outputs.data, 1)
-    #         # total += labels.size(0)
-    #         # correct += (predicted == labels).sum().item()
-    #         # correct += (outputs == labels).sum().item()
-    #         # outputs = torch.nan_to_num(outputs)
-    #         # score = f1_score(labels, outputs)
+    #         # outputs = net(images.float())
+    #         # print(images.shape)
+    #         outputs = net(images)
+    #         # outputs = torch.nn.functional.sigmoid(outputs)
+
+
+    #         # print("Predictions = ",outputs)
+    #         # print("True = ", labels)
+
 
     #         _, pred_ind = torch.topk(outputs,5)
-            
-
     #         _, tru_ind = torch.topk(labels,5)
 
-
-
-    #         score = (tru_ind == pred_ind).float().mean()
+    #         # print(f"Top predictions {pred_ind}, {tru_ind}")
             
-    #         pred_ind = pred_ind.cpu()
-    #         tru_ind = tru_ind.cpu()
-    #         # print(tru_ind)
-    #         # print(pred_ind)
     #         batch_acc = 0
     #         for i in range(tru_ind.shape[0]):
     #             overlap = np.intersect1d(tru_ind[i], pred_ind[i])
-    #             # print(tru_ind[i], pred_ind[i],overlap)
     #             batch_acc += len(overlap)/5
 
+    #         # print(pred_ind)
+    #         # print(tru_ind)
             
             
+    #         score = (tru_ind == pred_ind).float().mean()
 
-    #         # pred_ind = pred_ind.cpu().numpy()
-    #         # tru_ind = tru_ind.cpu().numpy()
-    #         # overlap = np.intersect1d(tru_ind, pred_ind)
-    #         # val = len(overlap) / 5
-    #         # print(overlap)
-    #         # print(val)
     #         total += score
     #         correct += batch_acc/tru_ind.shape[0]
 
-    #         # print(correct)
 
-    #         # print(correct)
-    #         # print(f'Mean Score is {score}')
-
-
-
-    # # print(f'Accuracy of the network on the test images: {100 * correct // total} %')
     # print(f'Mean accuracy of the network on the test set (index based) is {(total / len(test_dataloader))* 100}%')
     # print(f'Mean accuracy of the network on the test set (intersection based) is {(correct / len(test_dataloader))* 100}%')
 
-def model_test(net, test_dataloader, topk):
-    
-    net.load_state_dict(torch.load("/Users/amanshukla/miniforge3/torchMoji/model/yup.ckpt",
-    map_location=torch.device('cpu')))
 
+
+def model_test(net,path, test_dataloader, topk):
+    
+    net.load_state_dict(torch.load(path,map_location=torch.device('cpu')))
+    # /home/as14034/torchMoji/t25.ckpt
     net.eval()
     
+    dataframe = pd.DataFrame(columns=['test_image_id', 'real_labels', 'predicted_labels'])
     correct = 0
     total = 0
+    counter = 0
     # since we're not training, we don't need to calculate the gradients for our outputs
     with torch.no_grad():
         for data in test_dataloader:
             # print("Batching")
             images, labels = data['image'], data['emo_lab']
+            images, name = images
 
+            # print(name)
+            # print(type(images))
             labels = labels.squeeze(dim=1)
             # outputs = net(images.float())
             # print(images.shape)
@@ -289,26 +280,32 @@ def model_test(net, test_dataloader, topk):
             _, tru_ind = torch.topk(labels,topk)
 
             # print(f"Top predictions {pred_ind}, {tru_ind}")
-            
             batch_acc = 0
+            # print(tru_ind.shape[0], len(name))
+            
             for i in range(tru_ind.shape[0]):
                 overlap = np.intersect1d(tru_ind[i], pred_ind[i])
-                batch_acc += len(overlap)/5
+                dataframe.loc[counter] = [name[i],tru_ind[i].tolist(),pred_ind[i].tolist()]
+                counter += 1
+                # print(len(overlap)/topk)
+                batch_acc += len(overlap)/topk
 
             # print(pred_ind)
             # print(tru_ind)
             
-            
+            # print(f"Batch accuracy = {batch_acc/tru_ind.shape[0]}")
+            # print()
             score = (tru_ind == pred_ind).float().mean()
 
             total += score
             correct += batch_acc/tru_ind.shape[0]
 
+    # print(dataframe.shape)
+    # dataframe.to_csv('testset_labels.csv', index=False)
+    print(f'Mean accuracy of the network on the test set (index based) for {topk} is {(total / len(test_dataloader))* 100}%')
+    print(f'Mean accuracy of the network on the test set (intersection based) for {topk} is {(correct / len(test_dataloader))* 100}%')
 
-    print(f'Mean accuracy of the network on the test set (index based) is {(total / len(test_dataloader))* 100}%')
-    print(f'Mean accuracy of the network on the test set (intersection based) is {(correct / len(test_dataloader))* 100}%')
-
-    return (correct / len(test_dataloader))
+    # return (correct / len(test_dataloader))
 
 if __name__ == '__main__':
 
@@ -316,6 +313,7 @@ if __name__ == '__main__':
     device = torch.device('mps')
     # device='cpu'
 
+    # '/scratch/as14034/emoji/images/train'
     # Load images and emoji labels
     train_dataset = SpectrogramDataset('test_25_v4.csv','/Volumes/TOSHIBA/DALI/images/train' ,
                                         transform=transforms.Compose([
@@ -325,13 +323,13 @@ if __name__ == '__main__':
                                             transforms.Normalize(mean=[0.485, 0.456, 0.406], 
                                             std=[0.229, 0.224, 0.225])]))
 
-    # val_dataset = SpectrogramDataset('real.csv','data/image/val' ,
-    #                                     transform=transforms.Compose([
-    #                                         transforms.Resize(256),
-    #                                         transforms.CenterCrop(224),
-    #                                         transforms.ToTensor(),
-    #                                         transforms.Normalize(mean=[0.485, 0.456, 0.406], 
-    #                                         std=[0.229, 0.224, 0.225])]))
+    val_dataset = SpectrogramDataset('test_25_v4.csv','/Volumes/TOSHIBA/DALI/images/val' ,
+                                        transform=transforms.Compose([
+                                            transforms.Resize(256),
+                                            transforms.CenterCrop(224),
+                                            transforms.ToTensor(),
+                                            transforms.Normalize(mean=[0.485, 0.456, 0.406], 
+                                            std=[0.229, 0.224, 0.225])]))
 
     test_dataset = SpectrogramDataset('test_25_v4.csv','/Volumes/TOSHIBA/DALI/images/test' ,
                                         transform=transforms.Compose([
@@ -340,47 +338,75 @@ if __name__ == '__main__':
                                             transforms.ToTensor(),
                                             transforms.Normalize(mean=[0.485, 0.456, 0.406], 
                                             std=[0.229, 0.224, 0.225])]))
-
+    test_dataloader = DataLoader(test_dataset, batch_size=128, shuffle=True)
     # Fixed emoji labels to predict
     LABELS = 64
+        # Use Pretrained 
+    model = torch.hub.load('pytorch/vision:v0.10.0', 'resnet18', pretrained=True)
     
-    train_dataloader = DataLoader(train_dataset, batch_size=128, shuffle=True)
-    # val_dataloader = DataLoader(val_dataset, batch_size=4, shuffle=True)
-    test_dataloader = DataLoader(test_dataset, batch_size=128, shuffle=True)
+
+    # for walk in range(5):
+    #     config = {}
+    #     config['max_epochs'] = random.choice([10,20,30,50])
+    #     config['batch_size'] = random.choice([64,128,256,512])
+    #     config['lr'] = random.choice([0.1,0.01,0.001])
+        
+    #     # Define new model for each trial
+    net = resnet(model)
+    config = {'batch_size': 512, 'max_epochs': 50, 'lr': 0.01}
+    # # #     # Define Dataloaders
+    train_dataloader = DataLoader(train_dataset, batch_size=config['batch_size'], shuffle=True)
+    val_dataloader = DataLoader(val_dataset, batch_size=config['batch_size'], shuffle=True)
+    test_dataloader = DataLoader(test_dataset, batch_size=config['batch_size'], shuffle=True)
+
+    model_training(net, device, train_dataloader,val_dataloader,config,'train')
 
     # net = Net(labels=LABELS)
 
-    # Use Pretrained Alexnet
-    model = torch.hub.load('pytorch/vision:v0.10.0', 'densenet121', pretrained=True)
-    
-    net = densenet(model)
 
     # print(sum([param.nelement() for param in net.parameters()]))
 
     # model_training(net, device, train_dataloader, 0)
-    # model_test(LABELS, train_dataloader)
-
-    # acc = []
-    # for i in range(1,11):
-    #     acc.append(model_test(LABELS, test_dataloader,i))
+    # model_test(densenet(model),"/Users/amanshukla/miniforge3/torchMoji/model/train_dense5.ckpt", test_dataloader,5)
     
+    # for k in range(0,26,5):
+    # res = f"/Users/amanshukla/miniforge3/torchMoji/model/train.ckpt"    
+    # model_test(inception(model), res, test_dataloader,5)
+    # acc = []
+    # for i in range(1,16):
+    #     acc.append(model_test(densenet(model), res, test_dataloader,i))
+
     # plt.plot(acc)
+    # model_test(inception(model), res, test_dataloader,15)
+    # plt.legend()
+    # plt.savefig('curve10.png')
     # plt.show()
 
 
-    param = {
-        'max_epochs': [10,30,50],
-        'batch_size' : [128,256,512],
-        'lr' : [0.1,0.01,0.001]
-    }
+    
 
-    model = NeuralNetClassifier(net)
-    cv = GridSearchCV(model, param)
+    # model = NeuralNetClassifier(net, train_split=None)
+    # cv = GridSearchCV(model, param)
+
+    # cv.fit(train_dataset)
     # print(model.get_params().keys())
     # print(cv.get_params().keys())
     # X = SliceDataset(train_dataset,idx=0)
     # y = SliceDataset(train_dataset,idx=1)
     # print(type(y))
-    cv.fit(train_dataset, y=None)
+
+    # x_train = [element['image'] for element in train_dataset]
+    # y_train = [element['emo_lab'] for element in train_dataset]
+
+    # # # print(len(y_train))
+    # x_train = np.stack(x_train,axis=0)
+    # y_train = np.stack(y_train,axis=0)
+
+    # print(x_train.shape)
+    # print(y_train.shape)
+    # for i in range(len(train_dataset)):    
+    #     print(type(train_dataset[i]['emo_lab']))
+    # cv.fit(x_train,y=y_train)
     # print(cv.best_score_, cv.best_params_)
 
+    # torch.hub.set_dir('/scratch/as14034/')
