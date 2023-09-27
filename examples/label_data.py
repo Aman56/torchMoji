@@ -1,7 +1,7 @@
-from cProfile import label
+
 from operator import concat
 import DALI as dali_code
-# from examples.song import AUDIO_PATH
+from examples.song import AUDIO_PATH
 from text_emojize import predict_emoji_from_text
 from pandas import DataFrame, get_dummies, Series,concat
 import matplotlib.pyplot as plt
@@ -12,13 +12,13 @@ from pydub import AudioSegment
 import os
 import librosa.display as display
 
-import warnings
-warnings.filterwarnings("ignore")
+# import warnings
+# warnings.filterwarnings("ignore")
 
 
 SPLIT_SIZE = 15
-# AUDIO_PATH = "/Users/amanshukla/miniforge3/torchMoji/data"
-AUDIO_PATH = "/Volumes/TOSHIBA EXT/DALI/audios"
+# AUDIO_PATH = "/Users/amanshukla/miniforge3/torchMoji/data/audio"
+AUDIO_PATH = "/Volumes/TOSHIBA/DALI/audios"
 # IMAGE_PATH = "/Volumes/TOSHIBA EXT/DALI/images"
 # IMAGE_PATH = "/Users/amanshukla/miniforge3/torchMoji/data/image"
 
@@ -68,10 +68,10 @@ def convert_to_spectrogram(audio_sample_piece, piece_start_time, unique_song_id)
     # Bug : Cannot load an audio segment to make spectrogram
     # Fix: Export segment to mp3 temporarily and import from there
     D, sample_rate = None, None
-    if not os.path.isdir(AUDIO_PATH + '/temp_hold'):
-        os.makedirs(AUDIO_PATH + '/temp_hold')
+    if not os.path.isdir(AUDIO_PATH + '/temp_hold_new'):
+        os.makedirs(AUDIO_PATH + '/temp_hold_new')
 
-    audio_filename = AUDIO_PATH + '/temp_hold' + \
+    audio_filename = AUDIO_PATH + '/temp_hold_new' + \
         f"/{unique_song_id}_{piece_start_time}.mp3"
     audio_sample_piece.export(audio_filename, format="mp4")
 
@@ -100,8 +100,8 @@ def create_splits(mp3, song_entry, unique_song_id, single_label):
     # Number of samples to be created
     num_of_split_samples = song_length // SPLIT_SIZE
 
-    print(
-        f"Expecting {num_of_split_samples} samples for this song {unique_song_id}")
+    # print(
+    #     f"Expecting {num_of_split_samples} samples for this song {unique_song_id}")
     # Initial time to start audio processing
     start_time = 0
 
@@ -119,41 +119,42 @@ def create_splits(mp3, song_entry, unique_song_id, single_label):
             # Unique image id with song id and sample time
             image_id = f"/{unique_song_id}_{start_time}"
             # Check if image already exists in image folder
-            if not check_image_exists(image_id):
+            # if not check_image_exists(image_id):
 
-                # Get spectrogram matrix
-                image_matrix, sample_rate = convert_to_spectrogram(
-                    piece, start_time, unique_song_id)
+            # Get spectrogram matrix
+            # image_matrix, sample_rate = convert_to_spectrogram(
+            #     piece, start_time, unique_song_id)
 
-                if image_matrix is None and sample_rate is None:
-                    start_time = ending_time
-                    num_of_split_samples -= 1
-                    continue
+            # if image_matrix is None and sample_rate is None:
+            #     start_time = ending_time
+            #     num_of_split_samples -= 1
+            #     continue
 
-                # Get emoji for the piece from lyric processing
-                top_emoji = get_emoji_prediction(
-                    song_entry, start_time, ending_time, single_label)
+            # Get emoji for the piece from lyric processing
+            top_emoji = get_emoji_prediction(
+                song_entry, start_time, ending_time, single_label)
 
-                # Save the spectrogram image under corresponding emoji label
-                if single_label:    
-                    save_image_folder(image_matrix, sample_rate,
-                                    top_emoji, image_id)
+            # Save the spectrogram image under corresponding emoji label
+            # if single_label:    
+            #     save_image_folder(image_matrix, sample_rate,
+            #                     top_emoji, image_id)
 
-                    # print(
-                    #     f"Successfully Saved ! Non - Empty piece {num_of_split_samples} from {start_time} to {ending_time} with matrix {image_matrix.shape} and sample rate {sample_rate} with emoji label {top_emoji}")
-                else:
-                    save_image_folder(image_matrix, sample_rate, -1, image_id)
-                    # labeling.loc[COUNTER] = [image_id[1:], top_emoji]
-                    # COUNTER += 1
-                    # print(f"{image_id} has {top_emoji} labels")
-                    print(
-                        f"Successfully Saved ! Non - Empty piece {num_of_split_samples} from {start_time} to {ending_time} with emoji label {top_emoji} into dataframe")
+            #     # print(
+            #     #     f"Successfully Saved ! Non - Empty piece {num_of_split_samples} from {start_time} to {ending_time} with matrix {image_matrix.shape} and sample rate {sample_rate} with emoji label {top_emoji}")
+            # else:
+            #     save_image_folder(image_matrix, sample_rate, -1, image_id)
+            # print(image_id[1:], top_emoji)
+            labeling.loc[COUNTER] = [image_id[1:], top_emoji]
+            COUNTER += 1
+                # print(f"{image_id} has {top_emoji} labels")
+            # print(
+            #     f"Successfully Saved ! Non - Empty piece {num_of_split_samples} from {start_time} to {ending_time}") #with emoji label {top_emoji} into dataframe")
 
                 # print(
                 #         f"Successfully Saved ! Non - Empty piece {num_of_split_samples} from {start_time} to {ending_time} with matrix {image_matrix.shape} and sample rate {sample_rate} with emoji label {top_emoji}")
 
-            else:
-                print(f" Skipping! Image {image_id} already saved.")
+            # else:
+            #     print(f" Skipping! Image {image_id} already saved.")
 
         start_time = ending_time
         num_of_split_samples -= 1
@@ -318,14 +319,14 @@ def multi_label(single_label=False):
         dali_data_path, skip=[], keep=[])
 
     create_images(dali_data, single_label)
-    # print(labeling.T)
+    # print(labeling.head())
     # X = [x for row in labeling.emoji.values for x in row]
-    # col = ["images"] + list(set(X))
-    # df2 = get_dummies(labeling['emoji'].apply(Series).stack()).sum(level=0)
+    # col = ["images"] + list(range(64))
+    df2 = get_dummies(labeling['emoji'].apply(Series).stack()).sum(level=0)
 
-    # df = concat([labeling,df2], axis=1)
+    df = concat([labeling,df2], axis=1)
 
-    # df.to_csv('real.csv', index=False)
+    df.to_csv('test_25_v4.csv', index=False)
 
     # print(df)
     # return df
@@ -335,5 +336,48 @@ if __name__ == '__main__':
 #     # allinone()
 
 #     # New function to genereate images with multiple labels for multi lanel class prediction
-    multi_label()   
+    # multi_label()   
 #     # pass
+    dali_data_path = '/Users/amanshukla/Downloads/DALI_v1.0'
+
+    # Format of dali_info : array(['UNIQUE_DALI_ID', 'ARTIST NAME-SONG NAME', 'YOUTUBE LINK', 'WORKING/NOT WORKING'])
+    dali_info = dali_code.get_info(dali_data_path + '/info/DALI_DATA_INFO.gz')
+
+    # Reading DALI data for text processing
+    dali_data = dali_code.get_the_DALI_dataset(
+        dali_data_path, skip=[], keep=[])
+    
+    # Collect all songs downloaded
+    # tracks = glob.glob(AUDIO_PATH+'/*.mp3')
+    # count = 0
+    # # Iterate through the songs
+    # for song in tracks:    
+    #     song_id = song.split('/')[-1][:-4]
+
+    #     if song_id in dali_data:
+            
+    #         # Get annotations for particular song
+    #         entry = dali_data[song_id]
+
+    #         # Extract song language from annotation
+    #         song_title = entry.info["title"]
+    #         song_language = entry.info["metadata"]['language']
+    #         song_url = entry.info["audio"]["url"]
+
+
+    #         try:
+
+    #             mp3_file = AudioSegment.from_file(song, format='mp4')                    
+                
+    #             if song_language == 'english' and mp3_file.duration_seconds//60 < 3:
+    #                 count += 1
+    #                 print(song_url, song_id, song_title, song_language, mp3_file.duration_seconds//60)
+
+
+    #         except:
+    #             # print('error')
+    #             pass
+
+    #     if count > 20:
+    #         break
+
