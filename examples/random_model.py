@@ -7,9 +7,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 from text_emojize import EMOJIS
 import emoji
-from AppKit import NSSound
-import time
-
 import seaborn as sns
 
 def check_image_exists(unique_image_id,path):
@@ -65,7 +62,7 @@ def info_test():
         
         top = []
         new_hash = {}
-        for k in [5]:
+        for k in range(1,16):
 
                 box_arr = []
                 for key in hashmap:
@@ -80,10 +77,7 @@ def info_test():
                         for _, r in song_df.iterrows():
                                 # play song
                                 song_piece = r['test_image_id'].split('.')[0] +'.mp3'
-                                sound = NSSound.alloc()
-                                sound.initWithContentsOfFile_byReference_(f'/Volumes/TOSHIBA/DALI/audios/temp_hold/{song_piece}',False)
-                                sound.play()
-                                time.sleep(sound.duration())
+                        
                                 top5vals = r['predicted_labels'][:k]
                                 percent_overlap += len(np.intersect1d(word[:k],top5vals))/k
                                 topemojis = map(lambda x: EMOJIS[x],top5vals)
@@ -92,7 +86,6 @@ def info_test():
 
                         # print(f'Average overlap with song level emoji = {percent_overlap/len(song_df)}')
                         box_arr.append(percent_overlap/len(song_df))
-                        break
                 top.append(box_arr)
         sns.boxplot(top)
         sns.pointplot(top,color='black')
@@ -100,4 +93,4 @@ def info_test():
         plt.ylabel('accuracy')
         plt.show()
 
-# info_test()
+info_test()
