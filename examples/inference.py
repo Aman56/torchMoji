@@ -8,12 +8,8 @@ from pretrained import inception, preprocess
 from text_emojize import EMOJIS
 
 if __name__ == "__main__":
-    # file = '/Users/amanshukla/Downloads/171372540-easy-guitars-30-seconds.wav'
-    file = '/Users/amanshukla/Downloads/219124885-rainy-day-30-seconds-edit.wav'
-
-    # file = '/Users/amanshukla/Downloads/Ed_Sheeran_-_Perfect.mp3'
-    # file = '/Users/amanshukla/Downloads/John-Legend-All-Of-Me-(Gospeljingle.com).mp3'
-
+    
+    file = "path to file"
     audio_buffer, sample_rate = lib.load(file, mono=True)
     D = lib.amplitude_to_db(np.abs(lib.stft(audio_buffer)), ref=np.max)
 
@@ -31,7 +27,7 @@ if __name__ == "__main__":
     net = inception(model)
     net.load_state_dict(checks)
     net.eval()
-    
+
     emojis = net(trans_mat)
 
     _, pred_ind = torch.topk(emojis,5)
