@@ -16,9 +16,6 @@ preprocess = transforms.Compose([
     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
 ])
 
-# # print(input_image.shape)
-# input_tensor = preprocess(input_image)
-# input_batch = input_tensor.unsqueeze(0)
 
 # # Use Pretrained Alexnet
 # model = torch.hub.load('pytorch/vision:v0.10.0', 'alexnet', pretrained=True)
@@ -69,6 +66,19 @@ class inception(nn.Module):
 
         return x
 
+class resnet(nn.Module):
+    def __init__(self, model,labels=64) -> None:
+        super().__init__()
+        self.model = model
+        self.fc = nn.Linear(1000,labels)
+        self.sigmoid = nn.Sigmoid()
+
+    def forward(self,x):
+        x = self.model(x)
+        x = self.fc(x)
+        x = self.sigmoid(x)
+
+        return x
         
 # network = alex(model)
 # network.eval()

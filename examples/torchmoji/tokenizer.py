@@ -135,6 +135,8 @@ IGNORED = [
     RE_WHITESPACE
     ]
 
+IGNORED = [re.escape(item) for item in IGNORED]
+TOKENS = [re.escape(item) for item in TOKENS]
 # Final pattern
 RE_PATTERN = re.compile(r'|'.join(IGNORED) + r'|(' + r'|'.join(TOKENS) + r')',
                         re.UNICODE)

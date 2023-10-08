@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from text_emojize import EMOJIS
 import emoji
-import seaborn as sns
+# import seaborn as sns
 
 def check_image_exists(unique_image_id,path):
 
@@ -87,10 +87,10 @@ def info_test():
                         # print(f'Average overlap with song level emoji = {percent_overlap/len(song_df)}')
                         box_arr.append(percent_overlap/len(song_df))
                 top.append(box_arr)
-        sns.boxplot(top)
-        sns.pointplot(top,color='black')
+        # sns.boxplot(top)
+        # sns.pointplot(top,color='black')
         plt.xlabel('Top # emojis')
         plt.ylabel('accuracy')
         plt.show()
 
-info_test()
+# info_test()
