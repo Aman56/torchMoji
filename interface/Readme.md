@@ -11,6 +11,7 @@ Our system comprises three major components:
 
 ## Overview
 * [interface/](interface) contains all the underlying code needed to build the interface with all the functionality.
+* * [interface/emoji_MusicGen](interface) contains the emoji-based music generation prompt engineering method.
 
 ## Getting Started
 To get started with this project, follow these steps:
