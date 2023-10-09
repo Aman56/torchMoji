@@ -10,13 +10,13 @@ Our system comprises three major components:
 * Emoji-Enhanced Music Interface: Our project features an intuitive emoji-based music interface.  This interface not only visually conveys emotions at both the song and segment levels through emoticons but also empowers users to interact with music in innovative ways.  Users can search for and generate songs based on their emotional preferences, making the listening experience more engaging and personalized.
 
 ## Overview
-* [templates/](templates) contains all the underlying HTML code needed to build the interface.
-* [static/js/](static/js) contains all the underlying JavScript code needed to build the interface.
-* [static/css/](static/css) contains all the underlying CSS code needed to build the interface.
-* [static/music/](static/music) contains all the human-composed music.
-* [static/pregenrated_music/](static/pregenerated_music) contains all the AI-generated music
-* [init1.py](init1.py) contains the flask code.
-* [emoji_MusicGen.py](emoji_MusicGen.py) contains the emoji-based music generation prompt engineering method.
+* [templates/](templates): This directory holds all the HTML code essential for building the user interface of our project.
+* [static/js/](static/js): Inside this folder, you'll find all the JavaScript code that powers the interactive features of our interface.
+* [static/css/](static/css): You can access the CSS code responsible for styling and layout design in our interface here.
+* [static/music/](static/music): contains all the human-composed music tracks.
+* [static/pregenrated_music/](static/pregenerated_music): contains all the AI-generated music pieces that showcase the innovative capabilities of our system.
+* [init1.py](init1.py): contains the flask code.
+* [emoji_MusicGen.py](emoji_MusicGen.py): contains the emoji-based music generation prompt engineering method.
 
 ## Getting Started
 To get started with this project, follow these steps:
