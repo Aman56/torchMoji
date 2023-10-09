@@ -28,7 +28,7 @@ def get_completion(prompt):
         ----------
         prompt : str
     '''
-    openai.api_key = "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"
+    openai.api_key = "Your_API_Key"
     messages = [{"role": "user", "content": prompt}]
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
