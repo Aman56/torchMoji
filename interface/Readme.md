@@ -20,9 +20,8 @@ Our system comprises three major components:
 
 ## Getting Started
 To get started with this project, follow these steps:
-1. Clone the repository:
+1. Clone the repository by manually downloading it and then
 ```bash
-git clone yourrepositorylink
 cd yourproject
 ```
 2. Create and activate a virtual environment (optional but recommended);
