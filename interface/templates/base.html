@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Emomusic player</title>
+	<link rel="stylesheet" href= "../static/css/emojionearea.min.css">
+	<link rel="stylesheet" href="../static/css/style.css">
+	<script
+	src="https://code.jquery.com/jquery-3.6.4.min.js"
+	integrity="sha256-oP6HI9z1XaZNBrJURtCoUT5SUnxFr8s3BzRl+cbzUq8="
+	crossorigin="anonymous"></script>
+	<script src="{{ url_for('static', filename = 'js/emojionearea.min.js') }}"></script>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+
+<body>
+<h1>EmoMusic Player</h1>
+<div id="welcome-container">
+	<p id="welcome-message">{{ welcome_message }}</p>
+	<button id="logout-button">Log Out</button>
+</div>
+<div class="main">
+    <!-- top section -->
+    <div class="top_section">
+  		<h5>The Playlist&nbsp;&nbsp;<i class="fa fa-headphones" aria-hidden="true"></i></h5>
+  	</div>
+	<div class="main_page">
+		<div class="playlist_selector">
+			<button id="playlist1Button" class="playlist_button">Human Composed Music</button>
+        	<button id="playlist2Button" class="playlist_button">AI Generated Music</button>	
+		</div>
+	    <div class="search_bar">
+			<div class="search_bar_1">
+				<input type="text"
+					class = "Text"
+					id = "Text"
+					placeholder=" Search..."
+					name="search">
+			</div>
+			<p id="selectedId"></p>
+			<script>
+				$(document).ready(function(){
+					$("#Text").emojioneArea({
+						pickerPosition:"bottom"
+					});
+				})
+			</script>
+			<button id="searchButton">
+				<i class="fa fa-search"
+					style="font-size: 18px;">
+				</i>
+			</button>
+		</div>
+		<div id =playlistContainer>
+			<ul id="playlist">
+				<div class="tracks" data-playlist="All_song"></div>
+		  	</ul>
+		</div>
+		<div id="searchResults"></div>
+	</div>
+    <!-- small music player -->
+    <div class="small_music_player">
+		
+    	<div class="s_player_img">
+    	
+           <!-- wave animation part -->
+    	   <div class="wave_animation">
+			 <li></li>
+			 <li></li>
+			 <li></li>
+			 <li></li>
+			 <li></li>
+	       </div>
+	    </div>
+
+    	<div class="song_detail" aria-hidden="true">
+    		<p id="song_name">Embrace</p>
+    		<p id="artist_name">Null</p>
+    	</div>
+    	<i class="fa fa-chevron-up" aria-hidden="true" id="up_player"></i>
+    </div>
+
+
+    <!--  popup music player part -->
+    <div class="popup_music_player">
+         <div class="top">
+    	    <p>Now Playing</p>
+    	    <i class="fa fa-chevron-down" aria-hidden="true" id="down_player"></i>
+        </div>
+
+		<div class="emoji-container">
+			<!-- <div class = "emoji">
+				<p>
+					<span>🥰</span>
+					<span>😉</span>
+					<span>🥹</span>
+					<span>😍</span>
+					<span>😗</span>
+				  </p>
+			</div> -->
+		</div>   
+
+
+
+        <div class="song_description">
+          <h3 id="current_track_name">None</h3>
+          <p id="current_singer_name">None</p>
+        </div>
+
+	    <div id="container-container"></div>  
+
+       <div class="controlls">
+    	 	<div class="progress_part">
+    			<input type="range" min="0" max="100" value="0" id="slider" onchange="change_duration()">
+    			<div class="durations">
+    				<p id="current_duration">0:00</p>
+    		    	<p id="total_duration">0:00</p>
+    			</div>
+       		</div>
+			<!--		
+	    
+	    	<div class = "danmu">
+			<form id="comment-form" action="/home" method="POST">
+			<div class = "emojiSend">
+				<input type="text"
+					id = "Input"
+					placeholder=" Send..."
+					name="comment" required/>
+				<script>
+		  		$(document).ready(function(){
+			  		$("#Input").emojioneArea();
+		  		})
+	  			</script>
+
+				<button type = 'button' id="submit-comment">
+					<i class="fa fa-send"
+						style="font-size: 18px;">
+					</i>
+				</button>
+				<button id="generateButton2">
+					Generate
+				</button>
+			</div>
+			</form>
+-->
+			<div id="waveform" style="position: relative;">
+				<div id="comment-container">
+					<ul id = "comment-list" style="position: absolute; top: 0; left: 0; z-index: 10000;list-style: none;">
+						<!-- 0827 
+						{% for comment in comments %}
+                			<li>{{ comment }}</li>
+            			{% endfor %}
+						-->
+						{% if comments %}
+       						<!-- Loop through comments -->
+        					{% for comment in comments %}
+            					<li>{{ comment }}</li>
+        					{% endfor %}
+    					{% else %}
+    					{% endif %}
+					</ul>
+				</div>
+			</div>
+
+        <!-- controlls btn's -->
+        <div class="controlls_btns">
+			<button id="random_play" class="action-btn">random play</button>
+			<button id="backward_btn"><i class="fa fa-backward" aria-hidden="true"></i></button>
+			<button id="play_pause_btn"><i class="fa fa-play" aria-hidden="true"></i></button>
+			<button id="forward_btn"><i class="fa fa-forward" aria-hidden="true"></i></button>
+			<button id="cycle_play" class="action-btn">cycle play</button>
+        </div>
+    </div>
+    </div>
+</div>
+<script> 
+// let commentsData = {{ comments | default("")| tojson }};
+// console.log(commentsData)
+
+// let commentList = document.getElementById('comment-list');
+// if (commentsData){
+// 	commentsData.forEach((comment, index) => {
+//   	const delay = index * 5; 
+//   	const li = document.createElement('li');
+//   	li.classList.add('comment');
+//   	li.textContent = comment;
+//   	li.style.animationDelay = `${delay}s`; 
+//   	commentList.appendChild(li);
+// });
+// }
+</script>
+
+
+<script src="{{ url_for('static', filename = 'js/song_list.js') }}"></script>
+<script src="https://unpkg.com/wavesurfer.js@6.6"></script>
+<script src="{{ url_for('static', filename = 'js/main.js') }}"></script>
+</body>
+</html>
