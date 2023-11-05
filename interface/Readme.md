@@ -1,5 +1,5 @@
 # An Emoji-based Music Understanding and Generation Interface
-Emotion is at the heart of music AI research, and we've created an innovative interface that brings emotions and music together in a unique way.  In our project, we harness the power of emojis, a universally recognized medium for expressing emotions in text-based communication, to convey the emotional depth of music.
+Emotion is at the heart of music AI research, and we've created an innovative interface that brings emotions and music together in a unique way.  In our project, we harness the power of emojis, a universally recognized medium for expressing emotions in text-based communication, to convey the emotional depth of music. Check out the public website [here](https://cassie72.pythonanywhere.com/).
 
 Our system comprises three major components:
 
